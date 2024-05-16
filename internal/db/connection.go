@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,7 +12,9 @@ import (
 
 func getConnection() (client *mongo.Client, ctx context.Context) {
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	mongoURL := os.Getenv("MONGODB_URL")
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURL))
 
 	if err != nil {
 		log.Fatal(err) // log.Fatal will exit the program

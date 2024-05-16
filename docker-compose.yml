@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  golang-api:
+    container_name: golang-api
+    image: golang-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '0.0.0.0:8080:8080'
+   
+networks:
+  default:
+    name: nginxnet
+    external: true

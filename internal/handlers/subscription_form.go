@@ -10,43 +10,40 @@ import (
 )
 
 func SubscritptionHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
 
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "Erro ao fazer parse do form: %v", err)
-			return
-		}
+	var s controllers.Subscription
 
-		var s controllers.Subscription
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		http.Error(w, fmt.Sprintf("Erro ao fazer parse do body: %v", err), http.StatusBadRequest)
+		return
+	}
 
-		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
-			http.Error(w, fmt.Sprintf("Erro ao fazer parse do body: %v", err), http.StatusBadRequest)
-			return
-		}
+	err := controllers.CreateSubscription(s.Name, s.Email)
 
-		err := controllers.CreateSubscription(s.Name, s.Email)
+	message := fmt.Sprintf("Parabéns %s, sua assinatura foi concluída. Em breve receberá um e-mail com o link de acesso.", s.Name)
 
-		message := fmt.Sprintf("Parabéns %s, sua assinatura foi concluída. Em breve receberá um e-mail com o link de acesso.", s.Name)
+	// Enviando o email
+	if err := email.SendEmail(email.SentEmail{
+		To:                   s.Email,
+		From:                 "patrick.anjos@bagaggio.com.br",
+		Html:                 message,
+		Subject:              "Assinatura concluída",
+		Message:              "",
+		Base64Attachment:     "",
+		Base64AttachmentName: "",
+	}); err != nil {
+		fmt.Printf("Erro ao enviar o email: %v\n", err)
+	} else {
+		fmt.Println("Email enviado com sucesso!")
+	}
 
-		// Enviando o email
-		if err := email.SendEmail(email.SentEmail{
-			To:                   s.Email,
-			From:                 "patrick.anjos@bagaggio.com.br",
-			Html:                 message,
-			Subject:              "Assinatura concluída",
-			Message:              "",
-			Base64Attachment:     "",
-			Base64AttachmentName: "",
-		}); err != nil {
-			fmt.Printf("Erro ao enviar o email: %v\n", err)
-		} else {
-			fmt.Println("Email enviado com sucesso!")
-		}
-
-		if err != nil {
-			fmt.Fprintf(w, "Erro ao fazer parse do form: %v", err)
-			return
-		}
+	if err != nil {
+		fmt.Fprintf(w, "Erro ao fazer parse do form: %v", err)
+		return
 	}
 	w.WriteHeader(http.StatusCreated)
 }

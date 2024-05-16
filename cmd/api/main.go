@@ -19,10 +19,11 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	mongoURL := os.Getenv("MONGODB_URL")
+	fmt.Println(mongoURL)
+
 	http.HandleFunc("POST /", handlers.SubscritptionHandler)
 	http.HandleFunc("GET /", handlers.FindAllSubscriptionsHandler)
-
-	fmt.Printf("Servidor iniciado em http://localhost:%s\n", os.Getenv("API_PORT"))
 
 	if err := http.ListenAndServe(":"+os.Getenv("API_PORT"), nil); err != nil {
 		log.Fatal(err)
