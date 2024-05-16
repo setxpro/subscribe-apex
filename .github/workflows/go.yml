@@ -37,8 +37,8 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-      - name: Debug deploy date TZ
-          run: echo "Running at! $(date +%Y%m%d-%H:%M:%S)"
+      # - name: Debug deploy date TZ
+      #     run: echo "Running at! $(date +%Y%m%d-%H:%M:%S)"
 
       - name: Renomear container atual para rollback
         run: '[ -z "$(docker images -q golang-api:latest)" ] || docker tag golang-api:latest golang-api:bkp-$(date +%Y%m%d-%H%M%S)'
