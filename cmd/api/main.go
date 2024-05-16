@@ -9,7 +9,8 @@ import (
 
 func main() {
 
-	http.HandleFunc("/", handlers.SubscritptionHandler)
+	http.HandleFunc("POST /", handlers.SubscritptionHandler)
+	http.HandleFunc("GET /", handlers.FindAllSubscriptionsHandler)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)

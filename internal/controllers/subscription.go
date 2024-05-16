@@ -13,3 +13,12 @@ func CreateSubscription(name string, email string) error {
 
 	return db.Insert("subscription", subscription)
 }
+
+func FindAllSubscriptions() ([]Subscription, error) {
+
+	var subscriptions []Subscription
+
+	err := db.FindAll("subscription", &subscriptions)
+
+	return subscriptions, err
+}

@@ -32,3 +32,30 @@ func SubscritptionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 }
+
+func FindAllSubscriptionsHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	subscriptions, err := controllers.FindAllSubscriptions()
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Erro ao buscar assinaturas: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// cabeçalho Content-Type como application/json
+	w.Header().Set("Content-Type", "application/json")
+
+	// Define o status HTTP 200 OK explicitamente
+	w.WriteHeader(http.StatusOK)
+
+	// Codifica a resposta em formato JSON e a envia
+	if err := json.NewEncoder(w).Encode(subscriptions); err != nil {
+		http.Error(w, fmt.Sprintf("Erro ao codificar resposta JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+}
