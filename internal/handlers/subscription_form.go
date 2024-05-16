@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/setxpro/subscribe-apex/internal/controllers"
+	"github.com/setxpro/subscribe-apex/pkg/email"
 )
 
 func SubscritptionHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +25,23 @@ func SubscritptionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err := controllers.CreateSubscription(s.Name, s.Email)
+
+		message := fmt.Sprintf("Parabéns %s, sua assinatura foi concluída. Em breve receberá um e-mail com o link de acesso.", s.Name)
+
+		// Enviando o email
+		if err := email.SendEmail(email.SentEmail{
+			To:                   s.Email,
+			From:                 "patrick.anjos@bagaggio.com.br",
+			Html:                 message,
+			Subject:              "Assinatura concluída",
+			Message:              "",
+			Base64Attachment:     "",
+			Base64AttachmentName: "",
+		}); err != nil {
+			fmt.Printf("Erro ao enviar o email: %v\n", err)
+		} else {
+			fmt.Println("Email enviado com sucesso!")
+		}
 
 		if err != nil {
 			fmt.Fprintf(w, "Erro ao fazer parse do form: %v", err)
