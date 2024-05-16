@@ -1,0 +1,53 @@
+name: Go
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**'
+
+jobs:
+
+  build:
+    deploy-prod:
+      runs-on: ptk-docker
+      environment: production
+      if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/main') }}
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        API_PORT: ${{ secrets.API_PORT }}
+        EMAIL_API_URL: ${{ secrets.EMAIL_API_URL }}
+      steps:
+      - name: Git checkout v4
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Debug deploy date TZ
+          run: echo "Running at! $(date +%Y%m%d-%H:%M:%S)"
+
+      - name: Renomear container atual para rollback
+        run: '[ -z "$(docker images -q golang-api:latest)" ] || docker tag golang-api:latest golang-api:bkp-$(date +%Y%m%d-%H%M%S)'
+
+      - name: Build da imagem
+        run: docker-compose build --no-cache --build-arg BUILD_DATE=$(date +%Y%m%d-%H%M%S) golang-api
+
+      - name: Start da aplicação
+        run: docker-compose up -d --force-recreate golang-api
+
+      - name: Mantém apenas as últimas 07 imagens de golang-api
+        run: if [ $(docker image ls --all -q golang-api | sed -n 7,1000p | wc -l ) -ge 1 ]; then docker rmi -f $(docker image ls --all -q golang-api | sed -n 7,1000p); fi
